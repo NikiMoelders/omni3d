@@ -1,0 +1,37 @@
+services:
+  omni3d:
+    image: nrg/omni3d
+    container_name: omni3d
+    network_mode: host
+    build:
+      context: .. 
+      dockerfile: Docker/Dockerfile
+      args:
+        COMPOSE_BAKE: true
+    runtime: nvidia
+    shm_size: ${SHM_SIZE:-200G}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - NVIDIA_VISIBLE_DEVICES=all
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - ../../Omni3D:/root/Omni3D
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /dev/dri:/dev/dri
+      - ${HOME}/.Xauthority:/root/.Xauthority:rw
+      # - type: volume
+      #   source: ../thirdparty
+      #   target: /root/Lang2SegTrack
+      #   volume:
+      #     nocopy: true  # This prevents the initial copy of container files to the volume
+    stdin_open: true
+    tty: true
+    entrypoint: /entrypoint.sh 
