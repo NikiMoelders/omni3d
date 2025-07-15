@@ -47,9 +47,24 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 ENV PATH="/opt/conda/bin:$PATH"
 RUN conda init bash
 
+RUN conda config --set always_yes yes && \
+    conda config --add channels defaults && \
+    conda config --set channel_priority strict && \
+    conda config --set report_errors false && \
+    conda config --set auto_activate_base false && \
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && \
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+
+#RUN conda create -n omni3d python=3.8 -y && \
+    #/opt/conda/bin/conda run -n omni3d conda install -c conda-forge -c fvcore -c iopath -c pytorch3d -c pytorch -c nvidia \
+    #pytorch=2.3 torchvision torchaudio pytorch-cuda=12.1 \
+   # fvcore iopath pytorch3d cudatoolkit=12.1 -y
+
 # Create conda environment with Python 3.8
 RUN conda create -n omni3d python=3.8 -y \
-    && /opt/conda/bin/conda run -n omni3d conda install -c fvcore -c iopath -c conda-forge -c pytorch3d -c pytorch fvcore iopath pytorch3d pytorch=1.8 torchvision=0.9.1 cudatoolkit=10.1 -y
+    && /opt/conda/bin/conda run -n omni3d conda install -c fvcore -c iopath -c conda-forge fvcore iopath -y
+
+RUN conda install -n omni3d -c pytorch -c nvidia pytorch=2.2 torchvision torchaudio pytorch-cuda=12.1 -y
 
 
 # Set up conda environment
@@ -63,11 +78,15 @@ SHELL ["conda", "run", "-n", "omni3d", "/bin/bash", "-c"]
 # RUN conda install -c fvcore -c iopath -c conda-forge -c pytorch3d -c pytorch fvcore iopath pytorch3d pytorch=1.8 torchvision=0.9.1 cudatoolkit=11.8
 
 # Install python pip dependencies
-RUN pip install cython opencv-python \
-    && pip install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI' \
-    && python -m pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu101/torch1.8/index.html
+#RUN pip install cython opencv-python \
+    #&& pip install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI' \
+   # && python -m pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu101/torch1.8/index.html
 
-RUN /opt/conda/bin/conda run -n omni3d conda install -c conda-forge scipy seaborn
+RUN /opt/conda/bin/conda run -n omni3d /bin/bash -c "\
+    conda install -c conda-forge scipy seaborn -y && \
+    pip install 'git+https://github.com/facebookresearch/detectron2.git' && \
+    pip install opencv-python-headless && \
+    conda install pytorch3d -c pytorch3d -y"
 
 # Set up bash environment
 SHELL ["/bin/bash", "-l", "-c"]
